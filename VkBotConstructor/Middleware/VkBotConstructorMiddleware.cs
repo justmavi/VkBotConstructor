@@ -2,11 +2,8 @@
 using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
 using VkBotConstructor.Abstractions.Core;
-using VkBotConstructor.Abstractions.Model;
 using VkBotConstructor.Handler;
-using VkBotConstructor.Internal;
 using VkNet.Enums.SafetyEnums;
-using VkNet.Model;
 using VkNet.Model.GroupUpdate;
 using VkNet.Utils;
 
@@ -47,9 +44,12 @@ namespace VkBotConstructor.Core.Middleware
 #pragma warning restore CS0618
 
             await VkEventHandler.HandleAsync(vkResponse.Instance, _serviceProvider);
+
+            context.Response.StatusCode = 200;
+            await context.Response.WriteAsync("ok");
         }
 
-        private async Task<JToken> ReadRequestBodyAsync(HttpRequest request)
+        private static async Task<JToken> ReadRequestBodyAsync(HttpRequest request)
         {
             request.EnableBuffering();
 

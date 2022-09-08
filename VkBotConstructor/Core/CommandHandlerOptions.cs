@@ -20,7 +20,7 @@ namespace VkBotConstructor.Core
         /// <summary>
         /// Разделитель аргументов. По умолчанию - пробел.
         /// </summary>
-        public string ArgumentsSeparator { get; set; } = string.Empty;
+        public string ArgumentsSeparator { get; set; } = " ";
 
         /// <inheritdoc />
         public bool IgnoreCase { get; set; }

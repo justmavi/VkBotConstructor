@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.Text.RegularExpressions;
 using VkBotConstructor.Abstractions.Core;
-using VkBotConstructor.Abstractions.Handler;
 using VkBotConstructor.Abstractions.Model;
 using VkBotConstructor.Event.Message;
 using VkBotConstructor.Internal;
@@ -25,12 +24,29 @@ namespace VkBotConstructor.Handler
                 if (cmdInfo is null) return;
 
                 var handlerAssembly = HandlersDictionary.Get(cmdInfo.CommandText, commandHandlerOptions.IgnoreCase);
-                if (handlerAssembly is null) return;
 
-                if (serviceProvider.GetService(handlerAssembly) is ICommandHandler handler)
+                if (handlerAssembly is not null && serviceProvider.GetService(handlerAssembly) is CommandHandlerBase handler)
                 {
                     handler.MessageInfo = new MessageInfo(message);
+
                     await handler.HandleAsync(cmdInfo.CommandText, cmdInfo.Arguments, commandHandlerOptions);
+                }
+                else
+                {
+                    if (commandHandlerOptions.ResponseToUnknownCommand)
+                    {
+                        var apiManager = serviceProvider.GetRequiredService<IVkApiManager>();
+
+                        await apiManager.
+                            GroupApi.
+                            Messages.
+                            SendAsync(new()
+                            {
+                                RandomId = new DateTime().Millisecond,
+                                Message = commandHandlerOptions.UnknownCommandResponseMessage,
+                                PeerId = message.PeerId,
+                            });
+                    }
                 }
             }
         }
@@ -42,7 +58,7 @@ namespace VkBotConstructor.Handler
             return parts.Length switch
             {
                 0 => null,
-                1 => new(parts[0], null),
+                1 => new(parts[0], Array.Empty<string>()),
                 _ => new(parts[0], parts[1..])
             };
         }

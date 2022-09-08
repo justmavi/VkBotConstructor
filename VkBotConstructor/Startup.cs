@@ -2,11 +2,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using VkBotConstructor.Abstractions.Core;
-using VkBotConstructor.Abstractions.Handler;
 using VkBotConstructor.Attribute;
 using VkBotConstructor.Core;
 using VkBotConstructor.Core.Middleware;
 using VkBotConstructor.Exceptions;
+using VkBotConstructor.Handler;
 using VkBotConstructor.Internal;
 using VkNet;
 
@@ -30,7 +30,7 @@ namespace VkBotConstructor
             if (options.CommandHandlerOptions is not null)
             {
                 var handlerOptions = options.CommandHandlerOptions;
-                var types = handlerOptions.Assemblies.SelectMany(x => x.DefinedTypes).Where(x => x.IsAssignableTo(typeof(ICommandHandler)));
+                var types = handlerOptions.Assemblies.SelectMany(x => x.DefinedTypes).Where(x => x.IsAssignableTo(typeof(CommandHandlerBase)));
                
                 if (types.Any())
                 {
