@@ -4,6 +4,7 @@ using VkBotConstructor.Abstractions.Core;
 using VkBotConstructor.Abstractions.Event.Message;
 using VkBotConstructor.Abstractions.Model;
 using VkNet.Model.RequestParams;
+using VkBotConstructor.Internal;
 
 namespace VkBotConstructor.Handler
 {
@@ -63,7 +64,10 @@ namespace VkBotConstructor.Handler
                 commandHandler = methods.FirstOrDefault(m =>
                 {
                     var attribute = m.GetCustomAttribute<CommandNameAttribute>();
-                    return attribute is null ? m.Name.ToLower() == cmdtext : attribute.Names.Contains(cmdtext);
+                    var comparer = options.IgnoreCase ? StringComparison.OrdinalIgnoreCase : default;
+
+                    return attribute is null ? m.Name.Equals(cmdtext, comparer) 
+                    : (attribute.Names.FirstOrDefault(x => x.Equals(cmdtext, comparer)) is not null);
                 });
             }
 
@@ -78,8 +82,7 @@ namespace VkBotConstructor.Handler
 
             for (int i = 0; i < parameters.Length; i++)
             {
-                if (parameters[i].GetCustomAttribute<FromArgumentsAttribute>() is not null
-                    && parameters[i].ParameterType.IsAssignableTo(typeof(IArgumentsValidator)))
+                if (parameters[i].ParameterType.IsAssignableTo(typeof(IArgumentsValidator)))
                 {
                     var instance = Activator.CreateInstance(parameters[i].ParameterType) as IArgumentsValidator;
                     var validationResult = instance.Validate(arguments);
@@ -122,7 +125,7 @@ namespace VkBotConstructor.Handler
 
             if (result is string message)
             {
-                await SendMessageAsync(MessageInfo.PeerId, message);
+                await VkHelpers.SendMessaageAsync(ApiManager.GroupApi, MessageInfo.PeerId, message);
             }
             else if (result is MessagesSendParams @params)
             {
@@ -132,22 +135,7 @@ namespace VkBotConstructor.Handler
 
         protected async virtual Task OnError(CommandOnErrorEventArgs eventArgs)
         {
-            await SendMessageAsync(MessageInfo.PeerId, DefaultAnswer);
-        }
-
-        private async Task SendMessageAsync(long peerId, string message)
-        {
-            if (string.IsNullOrWhiteSpace(message)) return;
-
-            await ApiManager.
-                GroupApi.
-                Messages.
-                SendAsync(new()
-                {
-                    RandomId = new DateTime().Millisecond,
-                    Message = message,
-                    PeerId = peerId,
-                });
+            await VkHelpers.SendMessaageAsync(ApiManager.GroupApi, MessageInfo.PeerId, DefaultAnswer);
         }
     }
 }

@@ -36,16 +36,7 @@ namespace VkBotConstructor.Handler
                     if (commandHandlerOptions.ResponseToUnknownCommand)
                     {
                         var apiManager = serviceProvider.GetRequiredService<IVkApiManager>();
-
-                        await apiManager.
-                            GroupApi.
-                            Messages.
-                            SendAsync(new()
-                            {
-                                RandomId = new DateTime().Millisecond,
-                                Message = commandHandlerOptions.UnknownCommandResponseMessage,
-                                PeerId = message.PeerId,
-                            });
+                        await VkHelpers.SendMessaageAsync(apiManager.GroupApi, message.PeerId.Value, commandHandlerOptions.UnknownCommandResponseMessage);
                     }
                 }
             }
