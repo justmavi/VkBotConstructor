@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using System.Text.RegularExpressions;
 using VkBotConstructor.Abstractions.Core;
 using VkBotConstructor.Abstractions.Model;
 using VkBotConstructor.Event.Message;
@@ -18,27 +17,14 @@ namespace VkBotConstructor.Handler
 
         public static async Task HandleNewMessageEventAsync(Message message, ICommandHandlerOptions commandHandlerOptions, IServiceProvider serviceProvider)
         {
-            if (Regex.IsMatch(message.Text, $"^{commandHandlerOptions.CommandToken}", commandHandlerOptions.IgnoreCase ? RegexOptions.IgnoreCase : default))
+            var comparer = commandHandlerOptions.IgnoreCase ? StringComparison.OrdinalIgnoreCase : default;
+            if (message.Text.StartsWith(commandHandlerOptions.CommandToken, comparer))
             {
-                var cmdInfo = ParseMessageTextToCommand(message.Text[commandHandlerOptions.CommandToken.Length..], commandHandlerOptions.ArgumentsSeparator);
-                if (cmdInfo is null) return;
+                await HandleCommandAsync(message, commandHandlerOptions, serviceProvider); 
+            }
+            else
+            {
 
-                var handlerAssembly = HandlersDictionary.Get(cmdInfo.CommandText, commandHandlerOptions.IgnoreCase);
-
-                if (handlerAssembly is not null && serviceProvider.GetService(handlerAssembly) is CommandHandlerBase handler)
-                {
-                    handler.MessageInfo = new MessageInfo(message);
-
-                    await handler.HandleAsync(cmdInfo.CommandText, cmdInfo.Arguments, commandHandlerOptions);
-                }
-                else
-                {
-                    if (commandHandlerOptions.ResponseToUnknownCommand)
-                    {
-                        var apiManager = serviceProvider.GetRequiredService<IVkApiManager>();
-                        await VkHelpers.SendMessaageAsync(apiManager.GroupApi, message.PeerId.Value, commandHandlerOptions.UnknownCommandResponseMessage);
-                    }
-                }
             }
         }
 
@@ -52,6 +38,28 @@ namespace VkBotConstructor.Handler
                 1 => new(parts[0], Array.Empty<string>()),
                 _ => new(parts[0], parts[1..])
             };
+        }
+
+        private static async Task HandleCommandAsync(Message message, ICommandHandlerOptions commandHandlerOptions, IServiceProvider serviceProvider)
+        {
+            var cmdInfo = ParseMessageTextToCommand(message.Text[commandHandlerOptions.CommandToken.Length..], commandHandlerOptions.ArgumentsSeparator);
+            if (cmdInfo is null) return;
+
+            var handlerAssembly = HandlersDictionary.Get(cmdInfo.CommandText, commandHandlerOptions.IgnoreCase);
+
+            if (handlerAssembly is not null && serviceProvider.GetService(handlerAssembly) is CommandHandlerBase handler)
+            {
+                handler.MessageInfo = new MessageInfo(message);
+                await handler.HandleAsync(cmdInfo.CommandText, cmdInfo.Arguments, commandHandlerOptions);
+            }
+            else
+            {
+                if (commandHandlerOptions.ResponseToUnknownCommand)
+                {
+                    var apiManager = serviceProvider.GetRequiredService<IVkApiManager>();
+                    await VkHelpers.SendMessaageAsync(apiManager.GroupApi, message.PeerId.Value, commandHandlerOptions.UnknownCommandResponseMessage);
+                }
+            }
         }
     }
 }
