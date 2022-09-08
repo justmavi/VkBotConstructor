@@ -43,7 +43,7 @@ namespace VkBotConstructor.Core.Middleware
             }
 #pragma warning restore CS0618
 
-            await VkEventHandler.HandleAsync(vkResponse.Instance, _serviceProvider);
+            await VkEventHandler.HandleAsync(vkResponse.Instance, context.RequestServices);
 
             context.Response.StatusCode = 200;
             await context.Response.WriteAsync("ok");
