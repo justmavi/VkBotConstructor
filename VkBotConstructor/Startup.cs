@@ -31,29 +31,8 @@ namespace VkBotConstructor
             {
                 var handlerOptions = options.CommandHandlerOptions;
                 var types = handlerOptions.Assemblies.SelectMany(x => x.DefinedTypes).Where(x => x.IsAssignableTo(typeof(CommandHandlerBase)));
-               
-                if (types.Any())
-                {
-                    foreach (var type in types)
-                    {
-                        var cmdNameAttribute = type.GetCustomAttribute<CommandNameAttribute>();
-                        
-                        if (cmdNameAttribute is not null)
-                        {
-                            foreach (var name in cmdNameAttribute.Names)
-                            {
-                                HandlersDictionary.Add(name, type);
-                            }
-                        }
-                        else
-                        {
-                            var name = type.Name.Split("CommandHandler")[0];
-                            HandlersDictionary.Add(name, type);
-                        }
 
-                        services.AddTransient(type);
-                    }
-                }
+                if (types.Any()) ScanAndRegisterCommandHandlers(types, services);
 
                 services.AddSingleton(_ => options.CommandHandlerOptions);
             }
@@ -91,6 +70,65 @@ namespace VkBotConstructor
             }
 
             return new VkApiManager(userApi, groupApi);
+        }
+
+        private static void ScanAndRegisterCommandHandlers(IEnumerable<TypeInfo> handlersAssemblies, IServiceCollection services)
+        {
+            foreach (var type in handlersAssemblies)
+            {
+                var commandNames = type.GetCustomAttributes<CommandNameAttribute>().SelectMany(x => x.Names);
+
+                if (commandNames.Any())
+                {
+                    foreach (var name in commandNames)
+                    {
+                        CommandHandlersDictionary.Add(name, type);
+                    }
+                }
+                else // Using handler name as command name
+                {
+                    var name = type.Name.Split("CommandHandler")[0];
+                    CommandHandlersDictionary.Add(name, type);
+                }
+
+                services.AddTransient(type);
+            }
+        }
+
+        private static void ScanAndRegisterMessageHandlers(IEnumerable<TypeInfo> handlersAssemblies, IServiceCollection services)
+        {
+            foreach (var type in handlersAssemblies)
+            {
+                var messageTexts = type.GetCustomAttributes<MessageTextAttribute>().SelectMany(x => x.Texts);
+                var messageTextPatterns = type.GetCustomAttributes<MessageTextPatternAttribute>().SelectMany(x => x.Patterns);
+                var messagePayloads = type.GetCustomAttributes<MessagePayloadAttribute>().SelectMany(x => x.Payloads);
+
+                if (messageTexts.Any())
+                {
+                    foreach (var name in messageTexts)
+                    {
+                        MessageHandlersDictionary.Add(name, type);
+                    }
+                }
+
+                if (messageTextPatterns.Any())
+                {
+                    foreach (var pattern in messageTextPatterns)
+                    {
+                        MessageHandlersDictionary.Add(pattern, type);
+                    }
+                }
+
+                if (messagePayloads.Any())
+                {
+                    foreach (var paylaod in messagePayloads)
+                    {
+                        MessageHandlersDictionary.Add(paylaod, type);
+                    }
+                }
+
+                services.AddTransient(type);
+            }
         }
     }
 }

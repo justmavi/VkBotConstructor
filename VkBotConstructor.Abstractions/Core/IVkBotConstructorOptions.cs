@@ -25,5 +25,11 @@
         /// </summary>
         /// <param name="action">Функция, задающая нужные конфигурации</param>
         void UseCommandHandler(Action<ICommandHandlerOptions> action);
+
+        /// <summary>
+        /// Использовать обработчик сообщений
+        /// </summary>
+        /// <param name="action">Функция, задающая нужные конфигурации</param>
+        void UseMessageHandler(Action<IMessageHandlerOptions> action);
     }
 }

@@ -17,6 +17,7 @@ namespace VkBotConstructor.Core
         public string UserAccessToken { get; set; }
 
         internal ICommandHandlerOptions CommandHandlerOptions { get; set; }
+        internal IMessageHandlerOptions MessageHandlerOptions { get; set; }
 
         /// <inheritdoc />
         public void UseCommandHandler(Action<ICommandHandlerOptions> action)
@@ -25,6 +26,14 @@ namespace VkBotConstructor.Core
             action.Invoke(options);
 
             CommandHandlerOptions = options;
+        }
+
+        public void UseMessageHandler(Action<IMessageHandlerOptions> action)
+        {
+            var options = new MessageHandlerOptions();
+            action.Invoke(options);
+
+            MessageHandlerOptions = options;
         }
     }
 }

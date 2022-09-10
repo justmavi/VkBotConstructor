@@ -2,6 +2,7 @@
 using VkBotConstructor.Abstractions.Core;
 using VkBotConstructor.Abstractions.Model;
 using VkBotConstructor.Event.Message;
+using VkBotConstructor.Extension;
 using VkBotConstructor.Internal;
 using VkNet.Model;
 using VkNet.Model.GroupUpdate;
@@ -12,20 +13,22 @@ namespace VkBotConstructor.Handler
     {
         public static async Task HandleAsync(IGroupUpdate @event, IServiceProvider serviceProvider)
         {
-            if (@event is MessageNew obj) await HandleNewMessageEventAsync(obj.Message, serviceProvider.GetRequiredService<ICommandHandlerOptions>(), serviceProvider);
+            if (@event is MessageNew obj) await HandleNewMessageEventAsync(obj.Message, serviceProvider.GetService<ICommandHandlerOptions>(), serviceProvider);
         }
 
         public static async Task HandleNewMessageEventAsync(Message message, ICommandHandlerOptions commandHandlerOptions, IServiceProvider serviceProvider)
         {
-            var comparer = commandHandlerOptions.IgnoreCase ? StringComparison.OrdinalIgnoreCase : default;
-            if (message.Text.StartsWith(commandHandlerOptions.CommandToken, comparer))
+            if (commandHandlerOptions is not null)
             {
-                await HandleCommandAsync(message, commandHandlerOptions, serviceProvider); 
+                var comparer = commandHandlerOptions.IgnoreCase ? StringComparison.OrdinalIgnoreCase : default;
+                if (message.Text.StartsWith(commandHandlerOptions.CommandToken, comparer))
+                {
+                  
+                    await HandleCommandAsync(message, commandHandlerOptions, serviceProvider);
+                    return;
+                }
             }
-            else
-            {
 
-            }
         }
 
         private static CommandInfo ParseMessageTextToCommand(string message, string separator)

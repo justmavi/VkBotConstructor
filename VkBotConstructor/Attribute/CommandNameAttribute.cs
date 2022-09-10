@@ -1,6 +1,6 @@
 ﻿namespace VkBotConstructor.Attribute
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
     public class CommandNameAttribute : System.Attribute
     {
         public string[] Names { get; }
