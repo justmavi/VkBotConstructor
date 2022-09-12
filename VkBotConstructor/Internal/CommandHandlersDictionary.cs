@@ -2,7 +2,7 @@
 
 namespace VkBotConstructor.Internal
 {
-    static internal class HandlersDictionary
+    static internal class CommandHandlersDictionary
     {
         private readonly static Dictionary<string, TypeInfo> handlerAssemblies = new();
 

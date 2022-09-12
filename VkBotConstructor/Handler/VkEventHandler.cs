@@ -48,7 +48,7 @@ namespace VkBotConstructor.Handler
             var cmdInfo = ParseMessageTextToCommand(message.Text[commandHandlerOptions.CommandToken.Length..], commandHandlerOptions.ArgumentsSeparator);
             if (cmdInfo is null) return;
 
-            var handlerAssembly = HandlersDictionary.Get(cmdInfo.CommandText, commandHandlerOptions.IgnoreCase);
+            var handlerAssembly = CommandHandlersDictionary.Get(cmdInfo.CommandText, commandHandlerOptions.IgnoreCase);
 
             if (handlerAssembly is not null && serviceProvider.GetService(handlerAssembly) is CommandHandlerBase handler)
             {
