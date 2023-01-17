@@ -18,8 +18,8 @@ namespace VkBotConstructor.Internal
 
         public static TypeInfo Get(string key, bool ignoreCase = false)
         {
-            var comparer = StringComparison.OrdinalIgnoreCase;
-            var value = handlerAssemblies.FirstOrDefault(x => string.Equals(x.Key, key, ignoreCase ? comparer : default)).Value;
+            var comparer = ignoreCase ? StringComparison.OrdinalIgnoreCase : default;
+            var value = handlerAssemblies.FirstOrDefault(x => string.Equals(x.Key, key, comparer)).Value;
 
             return value;
         }

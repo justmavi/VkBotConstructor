@@ -2,7 +2,6 @@
 using VkBotConstructor.Abstractions.Core;
 using VkBotConstructor.Abstractions.Model;
 using VkBotConstructor.Event.Message;
-using VkBotConstructor.Extension;
 using VkBotConstructor.Internal;
 using VkNet.Model;
 using VkNet.Model.GroupUpdate;
@@ -13,21 +12,24 @@ namespace VkBotConstructor.Handler
     {
         public static async Task HandleAsync(IGroupUpdate @event, IServiceProvider serviceProvider)
         {
-            if (@event is MessageNew obj) await HandleNewMessageEventAsync(obj.Message, serviceProvider.GetService<ICommandHandlerOptions>(), serviceProvider);
+            if (@event is MessageNew obj) await HandleNewMessageEventAsync(obj.Message, serviceProvider);
         }
 
-        public static async Task HandleNewMessageEventAsync(Message message, ICommandHandlerOptions commandHandlerOptions, IServiceProvider serviceProvider)
+        public static Task HandleNewMessageEventAsync(Message message, IServiceProvider serviceProvider)
         {
+            var commandHandlerOptions = serviceProvider.GetService<ICommandHandlerOptions>();
+            var messageHandlerOptions = serviceProvider.GetService<IMessageHandlerOptions>();
+
             if (commandHandlerOptions is not null)
             {
                 var comparer = commandHandlerOptions.IgnoreCase ? StringComparison.OrdinalIgnoreCase : default;
                 if (message.Text.StartsWith(commandHandlerOptions.CommandToken, comparer))
                 {
-                  
-                    await HandleCommandAsync(message, commandHandlerOptions, serviceProvider);
-                    return;
+                    return HandleCommandAsync(message, commandHandlerOptions, serviceProvider);
                 }
             }
+
+            return Task.CompletedTask;
 
         }
 
@@ -53,7 +55,7 @@ namespace VkBotConstructor.Handler
             if (handlerAssembly is not null && serviceProvider.GetService(handlerAssembly) is CommandHandlerBase handler)
             {
                 handler.MessageInfo = new MessageInfo(message);
-                await handler.HandleAsync(cmdInfo.CommandText, cmdInfo.Arguments, commandHandlerOptions);
+                await handler.HandleAsync(cmdInfo.Arguments, message.Payload, commandHandlerOptions);
             }
             else
             {

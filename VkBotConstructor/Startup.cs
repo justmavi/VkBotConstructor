@@ -37,6 +37,16 @@ namespace VkBotConstructor
                 services.AddSingleton(_ => options.CommandHandlerOptions);
             }
 
+            if (options.MessageHandlerOptions is not null)
+            {
+                var handlerOptions = options.MessageHandlerOptions;
+                var types = handlerOptions.Assemblies.SelectMany(x => x.DefinedTypes).Where(x => x.IsAssignableTo(typeof(MessageHandlerBase)));
+
+                if (types.Any()) ScanAndRegisterMessageHandlers(types, services);
+
+                services.AddSingleton(_ => options.MessageHandlerOptions);
+            }
+
             return services;
         }
 

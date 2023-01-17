@@ -6,9 +6,9 @@
     public class CommandOnErrorEventArgs
     {
         /// <summary>
-        /// Название команды
+        /// Название обработчика
         /// </summary>
-        public string CommandText { get; set; }
+        public string HandlerName { get; set; }
         /// <summary>
         /// Аргументы
         /// </summary>
@@ -19,9 +19,9 @@
         /// </summary>
         /// <param name="commandText">Название команды</param>
         /// <param name="arguments">Аргументы</param>
-        public CommandOnErrorEventArgs(string commandText, string[] arguments)
+        public CommandOnErrorEventArgs(string handlerName, string[] arguments)
         {
-            CommandText = commandText;
+            HandlerName = handlerName;
             Arguments = arguments;
         }
     }
